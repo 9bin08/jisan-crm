@@ -31,26 +31,39 @@ export function useMultipleTransportMonths(monthLabels: string[]) {
     return useQuery({
         queryKey: transportKeys.multipleMonths(monthLabels),
         queryFn: async () => {
+            console.log('useMultipleTransportMonths - 조회 시작:', monthLabels);
+
             const results = await Promise.all(
                 monthLabels.map(async (monthLabel) => {
                     try {
+                        console.log(`월 ${monthLabel} 데이터 조회 시작`);
                         const monthData = await transportService.getTransportMonth(monthLabel);
+                        console.log(`월 ${monthLabel} monthData:`, monthData);
+
                         if (monthData) {
                             const rows = await transportService.getTransportRows(monthData.id);
+                            console.log(`월 ${monthLabel} rows:`, rows?.length || 0);
                             return { monthLabel, monthData, rows };
+                        } else {
+                            console.log(`월 ${monthLabel} - monthData가 null`);
+                            return { monthLabel, monthData: null, rows: [] };
                         }
-                        return { monthLabel, monthData: null, rows: [] };
                     } catch (error) {
+                        console.error(`월 ${monthLabel} 데이터 조회 실패:`, error);
                         logger.errorWithError(error, `월 ${monthLabel} 데이터 조회`);
                         return { monthLabel, monthData: null, rows: [] };
                     }
                 })
             );
+
+            console.log('useMultipleTransportMonths - 조회 완료:', results);
             return results;
         },
         enabled: monthLabels.length > 0,
-        staleTime: 1000 * 60 * 5, // 5분
-        gcTime: 1000 * 60 * 10, // 10분
+        staleTime: 1000 * 30, // 30초로 단축 (더 자주 새로고침)
+        gcTime: 1000 * 60 * 5, // 5분으로 단축
+        refetchOnWindowFocus: true, // 윈도우 포커스 시 재조회
+        refetchOnMount: true, // 컴포넌트 마운트 시 재조회
     });
 }
 
@@ -86,6 +99,8 @@ export function useSaveTransportMonth() {
             // 관련 쿼리들 무효화
             queryClient.invalidateQueries({ queryKey: transportKeys.month(variables.monthLabel) });
             queryClient.invalidateQueries({ queryKey: monthKeys.lists() });
+            // multipleMonths 쿼리들도 무효화 (새 월이 추가되었으므로)
+            queryClient.invalidateQueries({ queryKey: transportKeys.months() });
             logger.info(`월 "${variables.monthLabel}" 데이터가 저장되었습니다.`);
         },
         onError: (error) => {
@@ -111,6 +126,8 @@ export function useSaveTransportRows() {
         onSuccess: (_, variables) => {
             // 관련 쿼리들 무효화
             queryClient.invalidateQueries({ queryKey: transportKeys.rows(variables.monthId) });
+            // multipleMonths 쿼리들도 무효화 (데이터가 변경되었으므로)
+            queryClient.invalidateQueries({ queryKey: transportKeys.months() });
             logger.info('운반 행 데이터가 저장되었습니다.');
         },
         onError: (err) => {

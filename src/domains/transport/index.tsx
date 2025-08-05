@@ -12,6 +12,7 @@ import {
     ListItem,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Components
 import { Sidebar } from './components/Sidebar';
@@ -36,6 +37,7 @@ import { useMultipleTransportMonths } from './hooks/queries/useTransportQueries'
 import { useErrorHandler } from './hooks/useErrorHandler';
 import { useNotification } from './hooks/useNotification';
 import { useAutoSave } from './hooks/useAutoSave';
+import { transportKeys } from './hooks/queries/queryKeys';
 
 // Constants
 import {
@@ -53,6 +55,7 @@ import {
 
 function TransportPage() {
     const popoverAnchor = useRef<HTMLButtonElement | null>(null);
+    const queryClient = useQueryClient();
 
     // Hooks
     const {
@@ -206,22 +209,49 @@ function TransportPage() {
         if (checkedMonths.length === 0) return;
 
         try {
+            // 데이터 강제 새로고침을 위해 로딩 상태 표시
+            showInfo('데이터를 새로고침하고 있습니다...');
+
+            // multipleMonths 쿼리를 강제로 무효화하고 새로고침
+            await queryClient.invalidateQueries({ queryKey: transportKeys.multipleMonths(selectedMonthLabels) });
+            await queryClient.refetchQueries({ queryKey: transportKeys.multipleMonths(selectedMonthLabels) });
+
+            // 잠시 대기하여 사용자에게 피드백 제공
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             if (!multipleMonthsData) {
                 showInfo(INFO_MESSAGES.LOADING_DATA);
                 return;
             }
 
-            const monthsData = multipleMonthsData.map(({ monthLabel, monthData, rows }) => ({
-                month: monthLabel,
-                rows: rows || [],
-                meta: {
-                    company: monthData?.company || company,
-                    contact: monthData?.contact || contact,
-                    regNo: monthData?.reg_no || regNo
-                }
-            }));
+            // 디버깅: 선택된 월과 데이터 확인
+            console.log('통합 다운로드 - 선택된 월:', selectedMonthLabels);
+            console.log('통합 다운로드 - 서버 데이터:', multipleMonthsData);
 
-            await downloadAllExcel(monthsData);
+            const monthsData = multipleMonthsData.map(({ monthLabel, monthData, rows }) => {
+                console.log(`월 ${monthLabel} 데이터:`, { monthData, rowCount: rows?.length || 0 });
+                return {
+                    month: monthLabel,
+                    rows: rows || [],
+                    meta: {
+                        company: monthData?.company || company,
+                        contact: monthData?.contact || contact,
+                        regNo: monthData?.reg_no || regNo
+                    }
+                };
+            });
+
+            // 데이터가 있는 월만 필터링
+            const validMonthsData = monthsData.filter(({ rows }) => rows.length > 0);
+
+            if (validMonthsData.length === 0) {
+                showError('선택된 월에 데이터가 없습니다.');
+                return;
+            }
+
+            console.log('통합 다운로드 - 유효한 데이터:', validMonthsData);
+
+            await downloadAllExcel(validMonthsData);
             showSuccess(SUCCESS_MESSAGES.ALL_EXCEL_DOWNLOADED);
         } catch (err) {
             console.error('통합 다운로드 실패:', err);
