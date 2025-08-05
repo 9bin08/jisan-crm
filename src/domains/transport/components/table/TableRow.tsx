@@ -58,16 +58,16 @@ export function TableRow({
     onDeleteRow,
     onCalculate,
 }: TableRowProps) {
-    // 수량이나 단가가 변경될 때 공급가액 자동 계산
-    const handleCountOrUnitPriceChange = useCallback((field: 'count' | 'unitPrice', value: string) => {
+    // 중량이나 단가가 변경될 때 공급가액 자동 계산
+    const handleWeightOrUnitPriceChange = useCallback((field: 'weight' | 'unitPrice', value: string) => {
         onChange(idx, field, value);
 
-        // 수량과 단가가 모두 있으면 공급가액 자동 계산
-        const newCount = field === 'count' ? value : row.count;
+        // 중량과 단가가 모두 있으면 공급가액 자동 계산
+        const newWeight = field === 'weight' ? value : row.weight;
         const newUnitPrice = field === 'unitPrice' ? value : row.unitPrice;
 
-        if (newCount && newUnitPrice) {
-            const supplyPrice = TransportCalculator.calculateSupplyPrice(newCount, newUnitPrice);
+        if (newWeight && newUnitPrice) {
+            const supplyPrice = TransportCalculator.calculateSupplyPrice(newWeight, newUnitPrice);
             onChange(idx, 'supplyPrice', supplyPrice.toString());
 
             // 공급가액이 변경되었으므로 세액과 합계금액도 자동 계산
@@ -77,7 +77,7 @@ export function TableRow({
             onChange(idx, 'tax', tax.toString());
             onChange(idx, 'totalPrice', totalPrice.toString());
         }
-    }, [idx, onChange, row.count, row.unitPrice]);
+    }, [idx, onChange, row.weight, row.unitPrice]);
 
     // 공급가액이 변경될 때 세액과 합계금액 자동 계산
     const handleSupplyPriceChange = useCallback((value: string) => {
@@ -228,7 +228,7 @@ export function TableRow({
                         const value = e.target.value;
                         // 소수점과 숫자만 허용 (소수점 3자리까지)
                         if (value === '' || NUMBER_INPUT_LIMITS.WEIGHT_REGEX.test(value)) {
-                            onChange(idx, 'weight', value);
+                            handleWeightOrUnitPriceChange('weight', value);
                         }
                     }}
                     size="small"
@@ -241,7 +241,7 @@ export function TableRow({
                     value={row.count}
                     onChange={(e) => {
                         const value = e.target.value.replace(NUMBER_INPUT_LIMITS.INTEGER_REGEX, '');
-                        handleCountOrUnitPriceChange('count', value);
+                        onChange(idx, 'count', value);
                     }}
                     size="small"
                     sx={inputFieldStyles}
@@ -252,7 +252,7 @@ export function TableRow({
                     value={row.unitPrice ? TransportCalculator.formatKoreanCurrency(row.unitPrice) : ''}
                     onChange={(e) => {
                         const value = e.target.value.replace(NUMBER_INPUT_LIMITS.INTEGER_REGEX, '');
-                        handleCountOrUnitPriceChange('unitPrice', value);
+                        handleWeightOrUnitPriceChange('unitPrice', value);
                     }}
                     size="small"
                     placeholder={PLACEHOLDER_TEXTS.UNIT_PRICE}
@@ -275,7 +275,7 @@ export function TableRow({
                         size="small"
                         onClick={() => onCalculate(idx, CALCULATION_TYPES.SUPPLY as 'supply')}
                         sx={calculateButtonStyles}
-                        title="수량 × 단가로 공급가액 계산"
+                        title="중량 × 단가로 공급가액 계산"
                     >
                         <CalculateIcon sx={{ fontSize: 16 }} />
                     </IconButton>

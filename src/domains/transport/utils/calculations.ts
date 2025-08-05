@@ -8,12 +8,12 @@ export class TransportCalculator {
     private static readonly TAX_RATE = 0.1; // 10% 부가세
 
     /**
-     * 공급가액 계산 (수량 × 단가)
+     * 공급가액 계산 (중량 × 단가)
      */
-    static calculateSupplyPrice(count: string, unitPrice: string): number {
-        const countNum = parseFloat(count.replace(/,/g, '')) || 0;
+    static calculateSupplyPrice(weight: string, unitPrice: string): number {
+        const weightNum = parseFloat(weight.replace(/,/g, '')) || 0;
         const unitPriceNum = parseFloat(unitPrice.replace(/,/g, '')) || 0;
-        return countNum * unitPriceNum;
+        return weightNum * unitPriceNum;
     }
 
     /**

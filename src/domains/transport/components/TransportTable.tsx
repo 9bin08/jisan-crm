@@ -46,9 +46,9 @@ export default React.memo<TransportTableProps>(function TransportTable({
 
             switch (type) {
                 case 'supply':
-                    // 수량과 단가로 공급가액 계산
+                    // 중량과 단가로 공급가액 계산
                     const supplyPrice = TransportCalculator.calculateSupplyPrice(
-                        row.count || '0',
+                        row.weight || '0',
                         row.unitPrice || '0'
                     );
                     onChange(idx, 'supplyPrice', supplyPrice.toString());
