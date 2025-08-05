@@ -75,7 +75,7 @@ export function downloadStyledExcel(rows: TransportRow[], meta: ExcelMeta) {
             },
             ...Array(EXCEL_HEADERS.length - 1).fill({ v: '', t: 's', s: {} })
         ],
-        EXCEL_HEADERS.map((h, i) => ({
+        EXCEL_HEADERS.map((h) => ({
             v: h, t: 's', s: {
                 font: { name: '맑은 고딕', sz: 16, bold: true, color: { rgb: '000000' } },
                 alignment: { horizontal: 'center', vertical: 'center' },
@@ -188,7 +188,7 @@ export async function downloadAllMonthsExcel(
                 { v: regLine, t: 's', s: { font: { name: '맑은 고딕', sz: 16, bold: true, color: { rgb: '000000' } }, alignment: { horizontal: 'left', vertical: 'center' } } },
                 ...Array(EXCEL_HEADERS.length - 1).fill({ v: '', t: 's', s: {} })
             ],
-            EXCEL_HEADERS.map((h, i) => ({
+            EXCEL_HEADERS.map((h) => ({
                 v: h, t: 's', s: {
                     font: { name: '맑은 고딕', sz: 16, bold: true, color: { rgb: '000000' } },
                     alignment: { horizontal: 'center', vertical: 'center' },

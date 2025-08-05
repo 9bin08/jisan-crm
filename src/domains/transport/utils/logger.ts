@@ -66,7 +66,7 @@ class Logger {
         }
     }
 
-    private sendToExternalService(entry: LogEntry) {
+    private sendToExternalService(_entry: LogEntry) {
         // TODO: 외부 로깅 서비스 연동 (Sentry, LogRocket 등)
         // 현재는 구현하지 않음
     }
