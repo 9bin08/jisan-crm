@@ -86,6 +86,7 @@ function TransportPage() {
         deleteRow,
         saveData,
         updateFromExcel,
+        updateRows,
     } = useTransportData(selectedMonth, months);
 
     const {
@@ -455,6 +456,7 @@ function TransportPage() {
                                         onChange={updateRow}
                                         onAddRow={addRow}
                                         onDeleteRow={deleteRow}
+                                        onReorderRows={updateRows}
                                         summary={summary}
                                         currentMonth={currentMonthNumber}
                                     />

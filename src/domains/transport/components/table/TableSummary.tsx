@@ -14,7 +14,7 @@ export function TableSummary({ summary }: TableSummaryProps) {
     return (
         <TableRow sx={summaryRowStyles}>
             <TableCell
-                colSpan={8}
+                colSpan={10}
                 sx={summaryCellStyles}
             >
                 합계

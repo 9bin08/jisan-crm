@@ -88,6 +88,11 @@ export function useTransportData(selectedMonth: number, months: string[]) {
         setMonthRows(prev => ({ ...prev, [selectedMonth]: rows }));
     }, [selectedMonth]);
 
+    // 행 순서 변경
+    const updateRows = useCallback((newRows: TransportRow[]) => {
+        setMonthRows(prev => ({ ...prev, [selectedMonth]: newRows }));
+    }, [selectedMonth]);
+
     return {
         monthRows,
         currentRows,
@@ -98,5 +103,6 @@ export function useTransportData(selectedMonth: number, months: string[]) {
         deleteRow,
         saveData,
         updateFromExcel,
+        updateRows,
     };
 }

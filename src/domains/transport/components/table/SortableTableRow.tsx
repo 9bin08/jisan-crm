@@ -1,14 +1,8 @@
-import { useCallback } from 'react';
-import {
-    TableRow as MuiTableRow,
-    TableCell,
-    IconButton,
-    TextField,
-    Autocomplete,
-    Box,
-    Typography,
-} from '@mui/material';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { TableRow as MuiTableRow, TableCell, TextField, Autocomplete, Box, Typography, IconButton } from '@mui/material';
 import { Delete as DeleteIcon, Calculate as CalculateIcon } from '@mui/icons-material';
+import { DragHandle } from './DragHandle';
 import type { TransportRow } from '../../types';
 import { TransportCalculator } from '../../utils/calculations';
 import { COLORS } from '../../constants';
@@ -28,11 +22,10 @@ import {
 import {
     DATE_INPUT_LIMITS,
     NUMBER_INPUT_LIMITS,
-    CALCULATION_TYPES,
     PLACEHOLDER_TEXTS,
 } from '../../constants';
 
-interface TableRowProps {
+interface SortableTableRowProps {
     row: TransportRow;
     idx: number;
     currentMonth: number;
@@ -48,10 +41,9 @@ interface TableRowProps {
     onChange: (idx: number, field: keyof TransportRow, value: string) => void;
     onDeleteRow: (idx: number) => void;
     onCalculate: (idx: number, type: 'supply' | 'tax' | 'total') => void;
-    dragHandle?: React.ReactNode;
 }
 
-export function TableRow({
+export function SortableTableRow({
     row,
     idx,
     currentMonth,
@@ -59,10 +51,25 @@ export function TableRow({
     onChange,
     onDeleteRow,
     onCalculate,
-    dragHandle,
-}: TableRowProps) {
+}: SortableTableRowProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: `row-${idx}` });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 1000 : 'auto',
+    };
+
     // 중량이나 단가가 변경될 때 공급가액 자동 계산
-    const handleWeightOrUnitPriceChange = useCallback((field: 'weight' | 'unitPrice', value: string) => {
+    const handleWeightOrUnitPriceChange = (field: 'weight' | 'unitPrice', value: string) => {
         onChange(idx, field, value);
 
         // 중량과 단가가 모두 있으면 공급가액 자동 계산
@@ -80,10 +87,10 @@ export function TableRow({
             onChange(idx, 'tax', tax.toString());
             onChange(idx, 'totalPrice', totalPrice.toString());
         }
-    }, [idx, onChange, row.weight, row.unitPrice]);
+    };
 
     // 공급가액이 변경될 때 세액과 합계금액 자동 계산
-    const handleSupplyPriceChange = useCallback((value: string) => {
+    const handleSupplyPriceChange = (value: string) => {
         onChange(idx, 'supplyPrice', value);
 
         if (value) {
@@ -95,10 +102,14 @@ export function TableRow({
             const totalPrice = TransportCalculator.calculateTotal(value, tax.toString());
             onChange(idx, 'totalPrice', totalPrice.toString());
         }
-    }, [idx, onChange]);
+    };
 
     return (
-        <MuiTableRow sx={tableDataRowStyles}>
+        <MuiTableRow
+            ref={setNodeRef}
+            style={style}
+            sx={tableDataRowStyles}
+        >
             {/* 드래그 핸들러 셀 */}
             <TableCell sx={{
                 ...tableDataCellStyles,
@@ -107,7 +118,11 @@ export function TableRow({
                 textAlign: 'center',
                 borderRight: `1px solid ${COLORS.BORDER}`,
             }}>
-                {dragHandle}
+                <DragHandle
+                    id={`row-${idx}`}
+                    {...attributes}
+                    {...listeners}
+                />
             </TableCell>
             {/* 번호 셀 */}
             <TableCell sx={{
@@ -125,6 +140,7 @@ export function TableRow({
                     {idx + 1}
                 </Typography>
             </TableCell>
+            {/* 날짜 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <Box sx={dateInputContainerStyles}>
                     <Typography variant="body2" color="#6b7280" sx={dateTextStyles}>
@@ -143,6 +159,7 @@ export function TableRow({
                     />
                 </Box>
             </TableCell>
+            {/* 차량번호 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <Autocomplete
                     options={options.carNumbers}
@@ -169,6 +186,7 @@ export function TableRow({
                     )}
                 />
             </TableCell>
+            {/* 업체 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <Autocomplete
                     options={options.companies}
@@ -195,6 +213,7 @@ export function TableRow({
                     )}
                 />
             </TableCell>
+            {/* 하차지 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <Autocomplete
                     options={options.destinations}
@@ -221,6 +240,7 @@ export function TableRow({
                     )}
                 />
             </TableCell>
+            {/* 품목 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <Autocomplete
                     options={options.items}
@@ -247,12 +267,12 @@ export function TableRow({
                     )}
                 />
             </TableCell>
+            {/* 중량 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <TextField
                     value={row.weight}
                     onChange={(e) => {
                         const value = e.target.value;
-                        // 소수점과 숫자만 허용 (소수점 3자리까지)
                         if (value === '' || NUMBER_INPUT_LIMITS.WEIGHT_REGEX.test(value)) {
                             handleWeightOrUnitPriceChange('weight', value);
                         }
@@ -262,6 +282,7 @@ export function TableRow({
                     sx={inputFieldStyles}
                 />
             </TableCell>
+            {/* 횟수 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <TextField
                     value={row.count}
@@ -273,6 +294,7 @@ export function TableRow({
                     sx={inputFieldStyles}
                 />
             </TableCell>
+            {/* 단가 셀 */}
             <TableCell sx={tableDataCellRightStyles}>
                 <TextField
                     value={row.unitPrice ? TransportCalculator.formatKoreanCurrency(row.unitPrice) : ''}
@@ -285,6 +307,7 @@ export function TableRow({
                     sx={inputFieldStyles}
                 />
             </TableCell>
+            {/* 공급가액 셀 */}
             <TableCell sx={tableDataCellRightStyles}>
                 <Box sx={calculateButtonContainerStyles}>
                     <TextField
@@ -299,7 +322,7 @@ export function TableRow({
                     />
                     <IconButton
                         size="small"
-                        onClick={() => onCalculate(idx, CALCULATION_TYPES.SUPPLY as 'supply')}
+                        onClick={() => onCalculate(idx, 'supply')}
                         sx={calculateButtonStyles}
                         title="중량 × 단가로 공급가액 계산"
                     >
@@ -307,6 +330,7 @@ export function TableRow({
                     </IconButton>
                 </Box>
             </TableCell>
+            {/* 세액 셀 */}
             <TableCell sx={tableDataCellRightStyles}>
                 <Box sx={calculateButtonContainerStyles}>
                     <TextField
@@ -321,7 +345,7 @@ export function TableRow({
                     />
                     <IconButton
                         size="small"
-                        onClick={() => onCalculate(idx, CALCULATION_TYPES.TAX as 'tax')}
+                        onClick={() => onCalculate(idx, 'tax')}
                         sx={calculateButtonStyles}
                         title="공급가액의 10%로 세액 계산"
                     >
@@ -329,6 +353,7 @@ export function TableRow({
                     </IconButton>
                 </Box>
             </TableCell>
+            {/* 합계금액 셀 */}
             <TableCell sx={tableDataCellRightStyles}>
                 <Box sx={calculateButtonContainerStyles}>
                     <TextField
@@ -343,7 +368,7 @@ export function TableRow({
                     />
                     <IconButton
                         size="small"
-                        onClick={() => onCalculate(idx, CALCULATION_TYPES.TOTAL as 'total')}
+                        onClick={() => onCalculate(idx, 'total')}
                         sx={calculateButtonStyles}
                         title="공급가액 + 세액으로 합계금액 계산"
                     >
@@ -351,6 +376,7 @@ export function TableRow({
                     </IconButton>
                 </Box>
             </TableCell>
+            {/* 삭제 셀 */}
             <TableCell sx={tableDataCellStyles}>
                 <IconButton
                     size="small"

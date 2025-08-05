@@ -10,6 +10,14 @@ export const tableContainerStyles: SxProps<Theme> = {
         borderSpacing: 0,
         tableLayout: 'fixed',
         minWidth: TABLE_MIN_WIDTH,
+        width: '100%',
+    },
+    '& .MuiTableBody-root': {
+        '& tr:last-child': {
+            '& td': {
+                borderBottom: 'none',
+            }
+        }
     }
 };
 

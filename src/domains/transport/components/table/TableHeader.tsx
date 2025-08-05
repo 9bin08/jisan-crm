@@ -1,11 +1,21 @@
 import { TableHead, TableRow, TableCell } from '@mui/material';
 import { tableHeaderRowStyles, tableHeaderCellStyles } from '../../styles/tableStyles';
-import { TABLE_COLUMNS } from '../../constants';
+import { TABLE_COLUMNS, COLORS } from '../../constants';
 
 export function TableHeader() {
     return (
         <TableHead>
             <TableRow sx={tableHeaderRowStyles}>
+                {/* 드래그 핸들러 헤더 */}
+                <TableCell sx={{
+                    ...tableHeaderCellStyles,
+                    width: '30px',
+                    padding: '4px',
+                    textAlign: 'center',
+                    borderRight: `1px solid ${COLORS.BORDER}`,
+                }}>
+                    이동
+                </TableCell>
                 <TableCell sx={{ ...tableHeaderCellStyles, width: TABLE_COLUMNS.NO.width }}>
                     {TABLE_COLUMNS.NO.label}
                 </TableCell>

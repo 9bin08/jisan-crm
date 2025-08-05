@@ -1,22 +1,65 @@
 import React, { useMemo } from 'react';
 import { Table, TableBody, TableContainer } from '@mui/material';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import type { TransportRow } from '../types';
 import { TransportCalculator } from '../utils/calculations';
-import { tableContainerStyles } from '../styles/tableStyles';
-import { TableHeader, TableRow, TableSummary } from './table';
+import { TableHeader, TableSummary } from './table';
+import { SortableTableRow } from './table/SortableTableRow';
 
 interface TransportTableProps {
     rows: TransportRow[];
     onChange: (idx: number, field: keyof TransportRow, value: string) => void;
     onAddRow: () => void;
     onDeleteRow: (idx: number) => void;
+    onReorderRows: (newRows: TransportRow[]) => void;
     summary: { supplyTotal: number; taxTotal: number; totalPriceTotal: number };
     currentMonth: number;
 }
 
 export default React.memo<TransportTableProps>(function TransportTable({
-    rows, onChange, onDeleteRow, summary, currentMonth
+    rows, onChange, onDeleteRow, onReorderRows, summary, currentMonth
 }) {
+    // 드래그 앤 드롭 센서 설정
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 5, // 5px 이동 후 드래그 시작
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    // 드래그 종료 핸들러
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (active.id !== over?.id && over) {
+            const oldIndex = parseInt(active.id.toString().replace('row-', ''));
+            const newIndex = parseInt(over.id.toString().replace('row-', ''));
+
+            if (!isNaN(oldIndex) && !isNaN(newIndex) && oldIndex !== newIndex) {
+                const newRows = arrayMove(rows, oldIndex, newIndex);
+                onReorderRows(newRows);
+            }
+        }
+    };
+
     // 메모이제이션된 옵션들
     const options = useMemo(() => {
         const uniqueCarNumbers = TransportCalculator.extractUniqueValues(rows, 'carNumber');
@@ -71,25 +114,53 @@ export default React.memo<TransportTableProps>(function TransportTable({
     }, [rows, onChange]);
 
     return (
-        <TableContainer sx={tableContainerStyles}>
-            <Table>
-                <TableHeader />
-                <TableBody>
-                    {rows.map((row, idx) => (
-                        <TableRow
-                            key={idx}
-                            row={row}
-                            idx={idx}
-                            currentMonth={currentMonth}
-                            options={options}
-                            onChange={onChange}
-                            onDeleteRow={onDeleteRow}
-                            onCalculate={handleCalculate}
-                        />
-                    ))}
-                    <TableSummary summary={summary} />
-                </TableBody>
-            </Table>
-        </TableContainer>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
+            <TableContainer sx={{
+                width: '100%',
+                overflowX: 'auto',
+                '& .MuiTable-root': {
+                    borderCollapse: 'separate',
+                    borderSpacing: 0,
+                    tableLayout: 'fixed',
+                    minWidth: '1400px',
+                    width: '100%',
+                },
+                '& .MuiTableBody-root': {
+                    '& tr:last-child': {
+                        '& td': {
+                            borderBottom: 'none',
+                        }
+                    }
+                }
+            }}>
+                <Table>
+                    <TableHeader />
+                    <TableBody>
+                        <SortableContext
+                            items={rows.map((_, idx) => `row-${idx}`)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            {rows.map((row, idx) => (
+                                <SortableTableRow
+                                    key={`row-${idx}`}
+                                    row={row}
+                                    idx={idx}
+                                    currentMonth={currentMonth}
+                                    options={options}
+                                    onChange={onChange}
+                                    onDeleteRow={onDeleteRow}
+                                    onCalculate={handleCalculate}
+                                />
+                            ))}
+                        </SortableContext>
+                        <TableSummary summary={summary} />
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </DndContext>
     );
 });
