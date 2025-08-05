@@ -1,3 +1,4 @@
+import React from 'react';
 import {
     Box,
     Card,
@@ -9,6 +10,7 @@ import {
     Home as HomeIcon,
     TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
+import { COLORS, SPACING, BORDER_RADIUS, SHADOWS } from '../constants';
 
 interface StatsCardsProps {
     rowsCount: number;
@@ -17,7 +19,128 @@ interface StatsCardsProps {
     totalPriceTotal: number;
 }
 
-export function StatsCards({ rowsCount, supplyTotal, taxTotal, totalPriceTotal }: StatsCardsProps) {
+// 개별 통계 카드 컴포넌트
+interface StatCardProps {
+    title: string;
+    value: string | number;
+    icon: React.ReactNode;
+    iconBgColor: string;
+    iconColor: string;
+    trendText: string;
+    trendColor: string;
+    showCurrency?: boolean; // 통화 표시 여부
+}
+
+const StatCard = React.memo<StatCardProps>(({
+    title,
+    value,
+    icon,
+    iconBgColor,
+    iconColor,
+    trendText,
+    trendColor,
+    showCurrency = false
+}) => {
+    // 통화 표시 로직
+    const displayValue = React.useMemo(() => {
+        if (typeof value === 'number' && showCurrency) {
+            return `₩${value.toLocaleString('ko-KR')}`;
+        }
+        return value;
+    }, [value, showCurrency]);
+
+    return (
+        <Card sx={{
+            bgcolor: COLORS.CARD_BACKGROUND,
+            borderRadius: BORDER_RADIUS.LG,
+            boxShadow: SHADOWS.SM,
+            border: `1px solid ${COLORS.BORDER}`
+        }}>
+            <CardContent>
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Box>
+                        <Typography variant="body2" color={COLORS.GRAY[500]} gutterBottom>
+                            {title}
+                        </Typography>
+                        <Typography variant="h4" fontWeight={700} color={COLORS.GRAY[800]}>
+                            {displayValue}
+                        </Typography>
+                        <Stack direction="row" alignItems="center" spacing={SPACING.XS} mt={SPACING.XS}>
+                            <TrendingUpIcon sx={{ color: trendColor, fontSize: 16 }} />
+                            <Typography variant="body2" color={trendColor}>
+                                {trendText}
+                            </Typography>
+                        </Stack>
+                    </Box>
+                    <Box sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: BORDER_RADIUS.MD,
+                        bgcolor: iconBgColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        {React.cloneElement(icon as React.ReactElement<any>, { sx: { color: iconColor } })}
+                    </Box>
+                </Stack>
+            </CardContent>
+        </Card>
+    );
+});
+
+StatCard.displayName = 'StatCard';
+
+export const StatsCards = React.memo<StatsCardsProps>(({
+    rowsCount,
+    supplyTotal,
+    taxTotal,
+    totalPriceTotal
+}) => {
+    // 메모이제이션된 카드 데이터
+    const cardData = React.useMemo(() => [
+        {
+            title: '총 운반 건수',
+            value: rowsCount,
+            icon: <HomeIcon />,
+            iconBgColor: COLORS.SIDEBAR_ACTIVE_BG,
+            iconColor: COLORS.PRIMARY,
+            trendText: '+12% 이번 달',
+            trendColor: COLORS.SUCCESS,
+            showCurrency: false,
+        },
+        {
+            title: '총 공급가액',
+            value: supplyTotal,
+            icon: <TrendingUpIcon />,
+            iconBgColor: COLORS.STATS_SUCCESS_BG,
+            iconColor: COLORS.SUCCESS,
+            trendText: '+8% 이번 달',
+            trendColor: COLORS.SUCCESS,
+            showCurrency: true,
+        },
+        {
+            title: '총 세액',
+            value: taxTotal,
+            icon: <TrendingUpIcon />,
+            iconBgColor: COLORS.STATS_WARNING_BG,
+            iconColor: COLORS.WARNING,
+            trendText: '+8% 이번 달',
+            trendColor: COLORS.SUCCESS,
+            showCurrency: true,
+        },
+        {
+            title: '총 합계금액',
+            value: totalPriceTotal,
+            icon: <TrendingUpIcon />,
+            iconBgColor: COLORS.STATS_ERROR_BG,
+            iconColor: COLORS.ERROR,
+            trendText: '+8% 이번 달',
+            trendColor: COLORS.SUCCESS,
+            showCurrency: true,
+        },
+    ], [rowsCount, supplyTotal, taxTotal, totalPriceTotal]);
+
     return (
         <Box sx={{
             display: 'grid',
@@ -26,155 +149,13 @@ export function StatsCards({ rowsCount, supplyTotal, taxTotal, totalPriceTotal }
                 sm: 'repeat(2, 1fr)',
                 md: 'repeat(4, 1fr)'
             },
-            gap: 3
+            gap: SPACING.LG
         }}>
-            <Card sx={{
-                bgcolor: '#fff',
-                borderRadius: 3,
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                border: '1px solid #e5e7eb'
-            }}>
-                <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Box>
-                            <Typography variant="body2" color="#6b7280" gutterBottom>
-                                총 운반 건수
-                            </Typography>
-                            <Typography variant="h4" fontWeight={700} color="#1f2937">
-                                {rowsCount}
-                            </Typography>
-                            <Stack direction="row" alignItems="center" spacing={0.5} mt={1}>
-                                <TrendingUpIcon sx={{ color: '#10b981', fontSize: 16 }} />
-                                <Typography variant="body2" color="#10b981">
-                                    +12% 이번 달
-                                </Typography>
-                            </Stack>
-                        </Box>
-                        <Box sx={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 2,
-                            bgcolor: '#eff6ff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <HomeIcon sx={{ color: '#3b82f6' }} />
-                        </Box>
-                    </Stack>
-                </CardContent>
-            </Card>
-
-            <Card sx={{
-                bgcolor: '#fff',
-                borderRadius: 3,
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                border: '1px solid #e5e7eb'
-            }}>
-                <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Box>
-                            <Typography variant="body2" color="#6b7280" gutterBottom>
-                                총 공급가액
-                            </Typography>
-                            <Typography variant="h4" fontWeight={700} color="#1f2937">
-                                ₩{supplyTotal.toLocaleString('ko-KR')}
-                            </Typography>
-                            <Stack direction="row" alignItems="center" spacing={0.5} mt={1}>
-                                <TrendingUpIcon sx={{ color: '#10b981', fontSize: 16 }} />
-                                <Typography variant="body2" color="#10b981">
-                                    +8% 이번 달
-                                </Typography>
-                            </Stack>
-                        </Box>
-                        <Box sx={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 2,
-                            bgcolor: '#f0fdf4',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <TrendingUpIcon sx={{ color: '#10b981' }} />
-                        </Box>
-                    </Stack>
-                </CardContent>
-            </Card>
-
-            <Card sx={{
-                bgcolor: '#fff',
-                borderRadius: 3,
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                border: '1px solid #e5e7eb'
-            }}>
-                <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Box>
-                            <Typography variant="body2" color="#6b7280" gutterBottom>
-                                총 세액
-                            </Typography>
-                            <Typography variant="h4" fontWeight={700} color="#1f2937">
-                                ₩{taxTotal.toLocaleString('ko-KR')}
-                            </Typography>
-                            <Stack direction="row" alignItems="center" spacing={0.5} mt={1}>
-                                <TrendingUpIcon sx={{ color: '#10b981', fontSize: 16 }} />
-                                <Typography variant="body2" color="#10b981">
-                                    +8% 이번 달
-                                </Typography>
-                            </Stack>
-                        </Box>
-                        <Box sx={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 2,
-                            bgcolor: '#fef3c7',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <TrendingUpIcon sx={{ color: '#f59e0b' }} />
-                        </Box>
-                    </Stack>
-                </CardContent>
-            </Card>
-
-            <Card sx={{
-                bgcolor: '#fff',
-                borderRadius: 3,
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                border: '1px solid #e5e7eb'
-            }}>
-                <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Box>
-                            <Typography variant="body2" color="#6b7280" gutterBottom>
-                                총 합계금액
-                            </Typography>
-                            <Typography variant="h4" fontWeight={700} color="#1f2937">
-                                ₩{totalPriceTotal.toLocaleString('ko-KR')}
-                            </Typography>
-                            <Stack direction="row" alignItems="center" spacing={0.5} mt={1}>
-                                <TrendingUpIcon sx={{ color: '#10b981', fontSize: 16 }} />
-                                <Typography variant="body2" color="#10b981">
-                                    +8% 이번 달
-                                </Typography>
-                            </Stack>
-                        </Box>
-                        <Box sx={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 2,
-                            bgcolor: '#fef2f2',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <TrendingUpIcon sx={{ color: '#ef4444' }} />
-                        </Box>
-                    </Stack>
-                </CardContent>
-            </Card>
+            {cardData.map((card, index) => (
+                <StatCard key={index} {...card} />
+            ))}
         </Box>
     );
-}
+});
+
+StatsCards.displayName = 'StatsCards';

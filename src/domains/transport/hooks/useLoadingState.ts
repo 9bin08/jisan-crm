@@ -15,8 +15,6 @@ export function useLoadingState(loadingState: LoadingState) {
         isDataLoading,
         isMultipleMonthsLoading,
         isSaving,
-        isUploading,
-        isDownloading,
     } = loadingState;
 
     // 전체 로딩 상태

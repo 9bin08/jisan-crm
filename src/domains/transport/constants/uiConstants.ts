@@ -25,6 +25,13 @@ export const COLORS = {
     BORDER: '#e5e7eb',
     BACKGROUND: '#f8fafc',
     CARD_BACKGROUND: '#fff',
+    // 사이드바 관련 색상
+    SIDEBAR_ACTIVE_BG: '#eff6ff',
+    SIDEBAR_ACTIVE_HOVER: '#dbeafe',
+    // 통계 카드 관련 색상
+    STATS_SUCCESS_BG: '#f0fdf4',
+    STATS_WARNING_BG: '#fef3c7',
+    STATS_ERROR_BG: '#fef2f2',
 } as const;
 
 // 간격 (spacing)
@@ -56,6 +63,18 @@ export const ANIMATION_DURATION = {
     SLOW: 500,
 } as const;
 
+// 사이드바 관련 상수
+export const SIDEBAR = {
+    DRAWER_WIDTH: 280,
+    COLLAPSED_DRAWER_WIDTH: 72,
+    HEADER_MIN_HEIGHT: 64,
+    LOGO_SIZE: 32,
+    LOGO_FONT_SIZE: '18px',
+    MENU_ITEM_MIN_HEIGHT: 48,
+    TOGGLE_BUTTON_SIZE: 40,
+    TRANSITION_DURATION: '0.3s ease',
+} as const;
+
 // 자동 저장 지연 시간
 export const AUTO_SAVE_DELAY = 5000;
 
@@ -78,5 +97,26 @@ export const SCROLLBAR_STYLES = {
         '&:hover': {
             background: '#94a3b8',
         },
+    },
+} as const;
+
+// 서비스 관련 상수
+export const SERVICE = {
+    // 데이터베이스 테이블명
+    TABLES: {
+        TRANSPORT_MONTHS: 'transport_months',
+        TRANSPORT_ROWS: 'transport_rows',
+    },
+    // 정렬 옵션
+    ORDER: {
+        CREATED_AT_DESC: { column: 'created_at', ascending: false },
+        ROW_ORDER_ASC: { column: 'row_order', ascending: true },
+    },
+    // 월 정렬 정규식
+    MONTH_SORT_REGEX: /(\d+)년 (\d+)월/,
+    // 기본값
+    DEFAULTS: {
+        EMPTY_STRING: '',
+        NULL_VALUE: null,
     },
 } as const;

@@ -1,14 +1,9 @@
-import { useMemo } from 'react';
-import {
-    Table,
-    TableBody,
-    TableContainer,
-} from '@mui/material';
+import React, { useMemo } from 'react';
+import { Table, TableBody, TableContainer } from '@mui/material';
 import type { TransportRow } from '../types';
 import { TransportCalculator } from '../utils/calculations';
 import { tableContainerStyles } from '../styles/tableStyles';
 import { TableHeader, TableRow, TableSummary } from './table';
-import { TABLE_MIN_WIDTH, DEFAULT_ROW } from '../constants';
 
 interface TransportTableProps {
     rows: TransportRow[];
@@ -19,39 +14,61 @@ interface TransportTableProps {
     currentMonth: number;
 }
 
-export default function TransportTable({
-    rows,
-    onChange,
-    onAddRow,
-    onDeleteRow,
-    summary,
-    currentMonth
-}: TransportTableProps) {
-    // 기존 데이터에서 옵션 추출 (빈 값 제외) - useMemo로 최적화
-    const options = useMemo(() => ({
-        carNumbers: TransportCalculator.extractUniqueValues(rows, 'carNumber'),
-        companies: TransportCalculator.extractUniqueValues(rows, 'company'),
-        destinations: TransportCalculator.extractUniqueValues(rows, 'destination'),
-        items: TransportCalculator.extractUniqueValues(rows, 'item'),
-        weights: TransportCalculator.extractUniqueValues(rows, 'weight'),
-        counts: TransportCalculator.extractUniqueValues(rows, 'count'),
-        unitPrices: TransportCalculator.extractUniqueValues(rows, 'unitPrice'),
-    }), [rows]);
+export default React.memo<TransportTableProps>(function TransportTable({
+    rows, onChange, onDeleteRow, summary, currentMonth
+}) {
+    // 메모이제이션된 옵션들
+    const options = useMemo(() => {
+        const uniqueCarNumbers = TransportCalculator.extractUniqueValues(rows, 'carNumber');
+        const uniqueCompanies = TransportCalculator.extractUniqueValues(rows, 'company');
+        const uniqueDestinations = TransportCalculator.extractUniqueValues(rows, 'destination');
+        const uniqueItems = TransportCalculator.extractUniqueValues(rows, 'item');
+        const uniqueWeights = TransportCalculator.extractUniqueValues(rows, 'weight');
+        const uniqueCounts = TransportCalculator.extractUniqueValues(rows, 'count');
+        const uniqueUnitPrices = TransportCalculator.extractUniqueValues(rows, 'unitPrice');
 
-    const handleCalculate = (idx: number, type: 'supply' | 'tax' | 'total') => {
-        const row = rows[idx];
+        return {
+            carNumbers: uniqueCarNumbers,
+            companies: uniqueCompanies,
+            destinations: uniqueDestinations,
+            items: uniqueItems,
+            weights: uniqueWeights,
+            counts: uniqueCounts,
+            unitPrices: uniqueUnitPrices,
+        };
+    }, [rows]);
 
-        if (type === 'supply') {
-            const supplyPrice = TransportCalculator.calculateSupplyPrice(row.weight || '', row.unitPrice || '');
-            onChange(idx, 'supplyPrice', supplyPrice.toString());
-        } else if (type === 'tax') {
-            const tax = TransportCalculator.calculateTax(row.supplyPrice || '');
-            onChange(idx, 'tax', tax.toString());
-        } else if (type === 'total') {
-            const total = TransportCalculator.calculateTotal(row.supplyPrice || '', row.tax || '');
-            onChange(idx, 'totalPrice', total.toString());
-        }
-    };
+    // 메모이제이션된 계산 핸들러
+    const handleCalculate = useMemo(() => {
+        return (idx: number, type: 'supply' | 'tax' | 'total') => {
+            const row = rows[idx];
+            if (!row) return;
+
+            switch (type) {
+                case 'supply':
+                    // 수량과 단가로 공급가액 계산
+                    const supplyPrice = TransportCalculator.calculateSupplyPrice(
+                        row.count || '0',
+                        row.unitPrice || '0'
+                    );
+                    onChange(idx, 'supplyPrice', supplyPrice.toString());
+                    break;
+                case 'tax':
+                    // 공급가액의 10%로 세액 계산
+                    const tax = TransportCalculator.calculateTax(row.supplyPrice || '0');
+                    onChange(idx, 'tax', tax.toString());
+                    break;
+                case 'total':
+                    // 공급가액 + 세액으로 합계금액 계산
+                    const totalPrice = TransportCalculator.calculateTotal(
+                        row.supplyPrice || '0',
+                        row.tax || '0'
+                    );
+                    onChange(idx, 'totalPrice', totalPrice.toString());
+                    break;
+            }
+        };
+    }, [rows, onChange]);
 
     return (
         <TableContainer sx={tableContainerStyles}>
@@ -75,4 +92,4 @@ export default function TransportTable({
             </Table>
         </TableContainer>
     );
-}
+});

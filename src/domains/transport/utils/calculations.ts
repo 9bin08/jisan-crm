@@ -4,30 +4,52 @@ import type { TransportRow } from '../types';
  * 운반 데이터 계산 유틸리티
  */
 export class TransportCalculator {
+    // 세율 상수
+    private static readonly TAX_RATE = 0.1; // 10% 부가세
+
     /**
-     * 공급가액 계산
+     * 공급가액 계산 (수량 × 단가)
      */
-    static calculateSupplyPrice(weight: string, unitPrice: string): number {
-        const weightNum = parseFloat(weight.replace(/,/g, '')) || 0;
+    static calculateSupplyPrice(count: string, unitPrice: string): number {
+        const countNum = parseFloat(count.replace(/,/g, '')) || 0;
         const unitPriceNum = parseFloat(unitPrice.replace(/,/g, '')) || 0;
-        return weightNum * unitPriceNum;
+        return countNum * unitPriceNum;
     }
 
     /**
-     * 부가세 계산 (10%)
+     * 세액 계산 (공급가액의 10%)
      */
     static calculateTax(supplyPrice: string): number {
         const supplyPriceNum = parseFloat(supplyPrice.replace(/,/g, '')) || 0;
-        return supplyPriceNum * 0.1;
+        return supplyPriceNum * this.TAX_RATE;
     }
 
     /**
-     * 합계 계산
+     * 합계금액 계산 (공급가액 + 세액)
      */
     static calculateTotal(supplyPrice: string, tax: string): number {
         const supplyPriceNum = parseFloat(supplyPrice.replace(/,/g, '')) || 0;
         const taxNum = parseFloat(tax.replace(/,/g, '')) || 0;
         return supplyPriceNum + taxNum;
+    }
+
+    /**
+     * 공급가액으로부터 세액과 합계금액을 모두 계산
+     */
+    static calculateAllFromSupplyPrice(supplyPrice: string): {
+        supplyPrice: number;
+        tax: number;
+        totalPrice: number;
+    } {
+        const supplyPriceNum = parseFloat(supplyPrice.replace(/,/g, '')) || 0;
+        const tax = supplyPriceNum * this.TAX_RATE;
+        const totalPrice = supplyPriceNum + tax;
+
+        return {
+            supplyPrice: supplyPriceNum,
+            tax,
+            totalPrice,
+        };
     }
 
     /**
@@ -60,5 +82,22 @@ export class TransportCalculator {
     static isValidDecimal(value: string): boolean {
         const regex = /^\d*\.?\d{0,3}$/;
         return value === '' || regex.test(value);
+    }
+
+    /**
+     * 중량 검증 (소수점 3자리까지 허용)
+     */
+    static isValidWeight(value: string): boolean {
+        return this.isValidDecimal(value);
+    }
+
+    /**
+     * 중량 포맷팅 (소수점 3자리까지 표시)
+     */
+    static formatWeight(value: string | number): string {
+        if (!value) return '';
+        const num = typeof value === 'string' ? parseFloat(value) : value;
+        if (isNaN(num)) return '';
+        return num.toFixed(3).replace(/\.?0+$/, ''); // 끝의 불필요한 0 제거
     }
 }

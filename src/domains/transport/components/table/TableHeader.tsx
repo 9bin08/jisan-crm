@@ -1,4 +1,3 @@
-import React from 'react';
 import { TableHead, TableRow, TableCell } from '@mui/material';
 import { tableHeaderRowStyles, tableHeaderCellStyles } from '../../styles/tableStyles';
 import { TABLE_COLUMNS } from '../../constants';

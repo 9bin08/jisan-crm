@@ -9,6 +9,31 @@ export interface ErrorMessage {
     context?: string;
 }
 
+// 에러 객체 타입 정의
+interface ErrorWithMessage {
+    message: string;
+    [key: string]: unknown;
+}
+
+// 에러 타입 가드 함수들
+const isErrorWithMessage = (error: unknown): error is ErrorWithMessage => {
+    return (
+        error !== null &&
+        typeof error === 'object' &&
+        'message' in error &&
+        typeof (error as Record<string, unknown>).message === 'string'
+    );
+};
+
+const isNetworkError = (error: unknown): error is Error => {
+    return error instanceof Error && (
+        error.message.includes('fetch') ||
+        error.message.includes('timeout') ||
+        error.message.includes('network') ||
+        error.message.includes('connection')
+    );
+};
+
 export function useErrorHandler() {
     const handleError = useCallback((error: unknown, context: string): ErrorMessage => {
         logger.errorWithError(error, context);
@@ -19,8 +44,8 @@ export function useErrorHandler() {
             message = error.message;
         } else if (typeof error === 'string') {
             message = error;
-        } else if (error && typeof error === 'object' && 'message' in error) {
-            message = String(error.message);
+        } else if (isErrorWithMessage(error)) {
+            message = error.message;
         }
 
         return {
@@ -35,7 +60,7 @@ export function useErrorHandler() {
 
         let message = '네트워크 연결을 확인해주세요.';
 
-        if (error instanceof Error) {
+        if (isNetworkError(error)) {
             if (error.message.includes('fetch')) {
                 message = '서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.';
             } else if (error.message.includes('timeout')) {

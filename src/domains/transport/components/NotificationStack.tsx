@@ -1,4 +1,3 @@
-import React from 'react';
 import { Snackbar, Alert, Box } from '@mui/material';
 import type { Notification } from '../hooks/useNotification';
 

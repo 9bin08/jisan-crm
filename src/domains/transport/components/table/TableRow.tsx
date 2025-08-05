@@ -1,4 +1,4 @@
-import React from 'react';
+import { useCallback } from 'react';
 import {
     TableRow as MuiTableRow,
     TableCell,
@@ -58,6 +58,42 @@ export function TableRow({
     onDeleteRow,
     onCalculate,
 }: TableRowProps) {
+    // 수량이나 단가가 변경될 때 공급가액 자동 계산
+    const handleCountOrUnitPriceChange = useCallback((field: 'count' | 'unitPrice', value: string) => {
+        onChange(idx, field, value);
+
+        // 수량과 단가가 모두 있으면 공급가액 자동 계산
+        const newCount = field === 'count' ? value : row.count;
+        const newUnitPrice = field === 'unitPrice' ? value : row.unitPrice;
+
+        if (newCount && newUnitPrice) {
+            const supplyPrice = TransportCalculator.calculateSupplyPrice(newCount, newUnitPrice);
+            onChange(idx, 'supplyPrice', supplyPrice.toString());
+
+            // 공급가액이 변경되었으므로 세액과 합계금액도 자동 계산
+            const tax = TransportCalculator.calculateTax(supplyPrice.toString());
+            const totalPrice = TransportCalculator.calculateTotal(supplyPrice.toString(), tax.toString());
+
+            onChange(idx, 'tax', tax.toString());
+            onChange(idx, 'totalPrice', totalPrice.toString());
+        }
+    }, [idx, onChange, row.count, row.unitPrice]);
+
+    // 공급가액이 변경될 때 세액과 합계금액 자동 계산
+    const handleSupplyPriceChange = useCallback((value: string) => {
+        onChange(idx, 'supplyPrice', value);
+
+        if (value) {
+            // 세액 자동 계산 (공급가액의 10%)
+            const tax = TransportCalculator.calculateTax(value);
+            onChange(idx, 'tax', tax.toString());
+
+            // 합계금액 자동 계산 (공급가액 + 세액)
+            const totalPrice = TransportCalculator.calculateTotal(value, tax.toString());
+            onChange(idx, 'totalPrice', totalPrice.toString());
+        }
+    }, [idx, onChange]);
+
     return (
         <MuiTableRow sx={tableDataRowStyles}>
             <TableCell sx={numberCellStyles}>
@@ -100,8 +136,8 @@ export function TableRow({
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            placeholder={PLACEHOLDER_TEXTS.CAR_NUMBER}
                             size="small"
+                            placeholder={PLACEHOLDER_TEXTS.CAR_NUMBER}
                             sx={inputFieldStyles}
                         />
                     )}
@@ -126,8 +162,8 @@ export function TableRow({
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            placeholder={PLACEHOLDER_TEXTS.COMPANY}
                             size="small"
+                            placeholder={PLACEHOLDER_TEXTS.COMPANY}
                             sx={inputFieldStyles}
                         />
                     )}
@@ -152,8 +188,8 @@ export function TableRow({
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            placeholder={PLACEHOLDER_TEXTS.DESTINATION}
                             size="small"
+                            placeholder={PLACEHOLDER_TEXTS.DESTINATION}
                             sx={inputFieldStyles}
                         />
                     )}
@@ -178,8 +214,8 @@ export function TableRow({
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            placeholder={PLACEHOLDER_TEXTS.ITEM}
                             size="small"
+                            placeholder={PLACEHOLDER_TEXTS.ITEM}
                             sx={inputFieldStyles}
                         />
                     )}
@@ -190,11 +226,13 @@ export function TableRow({
                     value={row.weight}
                     onChange={(e) => {
                         const value = e.target.value;
+                        // 소수점과 숫자만 허용 (소수점 3자리까지)
                         if (value === '' || NUMBER_INPUT_LIMITS.WEIGHT_REGEX.test(value)) {
                             onChange(idx, 'weight', value);
                         }
                     }}
                     size="small"
+                    placeholder="중량"
                     sx={inputFieldStyles}
                 />
             </TableCell>
@@ -203,7 +241,7 @@ export function TableRow({
                     value={row.count}
                     onChange={(e) => {
                         const value = e.target.value.replace(NUMBER_INPUT_LIMITS.INTEGER_REGEX, '');
-                        onChange(idx, 'count', value);
+                        handleCountOrUnitPriceChange('count', value);
                     }}
                     size="small"
                     sx={inputFieldStyles}
@@ -214,7 +252,7 @@ export function TableRow({
                     value={row.unitPrice ? TransportCalculator.formatKoreanCurrency(row.unitPrice) : ''}
                     onChange={(e) => {
                         const value = e.target.value.replace(NUMBER_INPUT_LIMITS.INTEGER_REGEX, '');
-                        onChange(idx, 'unitPrice', value);
+                        handleCountOrUnitPriceChange('unitPrice', value);
                     }}
                     size="small"
                     placeholder={PLACEHOLDER_TEXTS.UNIT_PRICE}
@@ -227,7 +265,7 @@ export function TableRow({
                         value={row.supplyPrice ? TransportCalculator.formatKoreanCurrency(row.supplyPrice) : ''}
                         onChange={(e) => {
                             const value = e.target.value.replace(NUMBER_INPUT_LIMITS.INTEGER_REGEX, '');
-                            onChange(idx, 'supplyPrice', value);
+                            handleSupplyPriceChange(value);
                         }}
                         size="small"
                         placeholder={PLACEHOLDER_TEXTS.SUPPLY_PRICE}
@@ -237,6 +275,7 @@ export function TableRow({
                         size="small"
                         onClick={() => onCalculate(idx, CALCULATION_TYPES.SUPPLY as 'supply')}
                         sx={calculateButtonStyles}
+                        title="수량 × 단가로 공급가액 계산"
                     >
                         <CalculateIcon sx={{ fontSize: 16 }} />
                     </IconButton>
@@ -258,6 +297,7 @@ export function TableRow({
                         size="small"
                         onClick={() => onCalculate(idx, CALCULATION_TYPES.TAX as 'tax')}
                         sx={calculateButtonStyles}
+                        title="공급가액의 10%로 세액 계산"
                     >
                         <CalculateIcon sx={{ fontSize: 16 }} />
                     </IconButton>
@@ -279,6 +319,7 @@ export function TableRow({
                         size="small"
                         onClick={() => onCalculate(idx, CALCULATION_TYPES.TOTAL as 'total')}
                         sx={calculateButtonStyles}
+                        title="공급가액 + 세액으로 합계금액 계산"
                     >
                         <CalculateIcon sx={{ fontSize: 16 }} />
                     </IconButton>

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { ErrorMessage, ErrorType } from './useErrorHandler';
+import type { ErrorType } from './useErrorHandler';
 
 export interface Notification {
     id: string;

@@ -110,8 +110,9 @@ function TransportPage() {
     const selectedMonthLabels = checkedMonths.map(i => months[i]).filter(Boolean);
     const { data: multipleMonthsData, isLoading: isMultipleDataLoading } = useMultipleTransportMonths(selectedMonthLabels);
 
-    // 초기 로딩 상태 (월 목록과 데이터 로딩)
+    // 로딩 상태 관리 개선 - 깜빡임 방지
     const isInitialLoading = isMonthLoading || (isDataLoading && months.length === 0);
+    const isAnyLoading = isMonthLoading || isDataLoading || isMultipleDataLoading;
 
     // 자동 저장
     const saveHandler = useCallback(async () => {
@@ -157,11 +158,6 @@ function TransportPage() {
         document.body.style.background = COLORS.BACKGROUND;
         return () => { document.body.style.background = ''; };
     }, []);
-
-    // 초기 로딩 중일 때만 로딩 화면 표시
-    if (isInitialLoading) {
-        return <SuspenseFallback fullScreen message={INFO_MESSAGES.DATA_LOADING} />;
-    }
 
     // Event handlers
     const handleSave = async () => {
@@ -242,17 +238,27 @@ function TransportPage() {
     })();
 
     return (
-        <Box sx={{ display: 'flex', bgcolor: COLORS.BACKGROUND, minHeight: '100vh', overflow: 'hidden', width: '100vw' }}>
+        <Box sx={{ display: 'flex', bgcolor: COLORS.BACKGROUND, minHeight: '100vh', overflow: 'hidden', width: '100vw', position: 'relative' }}>
+            {/* 로딩 오버레이 - 깜빡임 방지 */}
+            {isInitialLoading && (
+                <SuspenseFallback fullScreen message={INFO_MESSAGES.DATA_LOADING} />
+            )}
+
             {/* 사이드바 */}
             <Sidebar open={sidebarOpen} onToggle={toggleSidebar} />
 
             {/* 메인 콘텐츠 */}
             <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
                 {/* 상단 헤더 */}
-                <Header sidebarOpen={sidebarOpen} onToggleSidebar={toggleSidebar} />
+                <Header />
 
                 {/* 메인 콘텐츠 영역 */}
-                <Box sx={{ flexGrow: 1, p: SPACING.XL, overflow: 'auto' }}>
+                <Box sx={{ flexGrow: 1, p: SPACING.XL, overflow: 'auto', position: 'relative' }}>
+                    {/* 부분 로딩 오버레이 */}
+                    {isAnyLoading && !isInitialLoading && (
+                        <SuspenseFallback message={INFO_MESSAGES.LOADING_DATA} />
+                    )}
+
                     <Stack spacing={SPACING.XL} sx={{ maxWidth: '100%', minWidth: 0 }}>
                         {/* 통계 카드 */}
                         <StatsCards

@@ -1,4 +1,3 @@
-import React from 'react';
 import { TableRow, TableCell } from '@mui/material';
 import { summaryRowStyles, summaryCellStyles, summaryCellRightStyles } from '../../styles/tableStyles';
 import { TransportCalculator } from '../../utils/calculations';
