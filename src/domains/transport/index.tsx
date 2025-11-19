@@ -231,12 +231,7 @@ function TransportPage() {
                 return;
             }
 
-            // 디버깅: 선택된 월과 데이터 확인
-            console.log('통합 다운로드 - 선택된 월:', selectedMonthLabels);
-            console.log('통합 다운로드 - 서버 데이터:', multipleMonthsData);
-
             const monthsData = multipleMonthsData.map(({ monthLabel, monthData, rows }) => {
-                console.log(`월 ${monthLabel} 데이터:`, { monthData, rowCount: rows?.length || 0 });
                 return {
                     month: monthLabel,
                     rows: rows || [],
@@ -256,12 +251,9 @@ function TransportPage() {
                 return;
             }
 
-            console.log('통합 다운로드 - 유효한 데이터:', validMonthsData);
-
             await downloadAllExcel(validMonthsData);
             showSuccess(SUCCESS_MESSAGES.ALL_EXCEL_DOWNLOADED);
         } catch (err) {
-            console.error('통합 다운로드 실패:', err);
             showError(ERROR_MESSAGES.ALL_EXCEL_DOWNLOAD_FAILED);
         }
     };

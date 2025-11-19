@@ -4,32 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// 환경 변수 검증 강화
+// 환경 변수 검증
 if (!supabaseUrl) {
-    const error = 'Missing VITE_SUPABASE_URL environment variable. Please check your .env.local file or Vercel environment variables.';
-    console.error('❌ Supabase Configuration Error:', error);
-    console.error('🔧 배포 환경인 경우: Vercel 대시보드 → Settings → Environment Variables에서 설정하세요.');
-    throw new Error(error);
+    throw new Error('Missing VITE_SUPABASE_URL environment variable. Please check your .env.local file or Vercel environment variables.');
 }
 
 if (!supabaseAnonKey) {
-    const error = 'Missing VITE_SUPABASE_ANON_KEY environment variable. Please check your .env.local file or Vercel environment variables.';
-    console.error('❌ Supabase Configuration Error:', error);
-    console.error('🔧 배포 환경인 경우: Vercel 대시보드 → Settings → Environment Variables에서 설정하세요.');
-    throw new Error(error);
-}
-
-// 잘못된 URL 감지 (이전 프로젝트 URL)
-if (supabaseUrl.includes('rfcmscelfggyvroitclo')) {
-    console.error('❌ 잘못된 Supabase URL이 감지되었습니다!');
-    console.error('📍 현재 URL:', supabaseUrl);
-    console.error('✅ 올바른 URL:', 'https://zeqxavqgtunpcrgpebvh.supabase.co');
-    console.error('🔧 해결 방법: Vercel 대시보드에서 환경 변수를 업데이트하고 재배포하세요.');
-}
-
-// URL 형식 검증
-if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
-    console.warn('⚠️ Supabase URL 형식이 올바르지 않을 수 있습니다:', supabaseUrl);
+    throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable. Please check your .env.local file or Vercel environment variables.');
 }
 
 // Supabase 클라이언트 생성
@@ -50,40 +31,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // 연결 테스트 함수
 export async function testSupabaseConnection(): Promise<boolean> {
     try {
-        console.log('🔍 Supabase 연결 테스트 시작...');
-        console.log('📍 Supabase URL:', supabaseUrl);
-
-        // 간단한 쿼리로 연결 테스트
         const { error } = await supabase
             .from('transport_months')
             .select('id')
             .limit(1);
 
-        if (error) {
-            console.error('❌ Supabase 연결 실패:', error.message);
-            console.error('상세 에러:', error);
-            return false;
-        }
-
-        console.log('✅ Supabase 연결 성공!');
-        return true;
-    } catch (error) {
-        console.error('❌ Supabase 연결 테스트 중 예외 발생:', error);
+        return !error;
+    } catch {
         return false;
     }
 }
-
-// 개발 및 프로덕션 환경에서 Supabase 설정 확인
-console.log('🔧 Supabase 설정 확인');
-console.log('📍 URL:', supabaseUrl ? supabaseUrl : '❌ 없음');
-console.log('🔑 Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : '❌ 없음');
-console.log('🌍 환경:', import.meta.env.MODE);
-console.log('📦 빌드 모드:', import.meta.env.PROD ? 'Production' : 'Development');
-
-// 앱 시작 시 연결 테스트 (비동기로 실행하여 앱 시작을 막지 않음)
-testSupabaseConnection().catch(err => {
-    console.error('Supabase 연결 테스트 실패:', err);
-});
 
 // 데이터베이스 타입 정의
 export interface Database {

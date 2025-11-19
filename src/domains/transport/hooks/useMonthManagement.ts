@@ -19,7 +19,6 @@ export function useMonthManagement() {
             if (newMonthIndex !== -1) {
                 setSelectedMonth(newMonthIndex);
                 setCheckedMonths(months.map((_, i) => i));
-                console.log('새로운 월이 자동으로 선택되었습니다:', pendingNewMonth.current);
                 pendingNewMonth.current = null;
             }
         }
@@ -35,14 +34,12 @@ export function useMonthManagement() {
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1; // getMonth()는 0부터 시작
             newMonth = `${currentYear}년 ${currentMonth}월`;
-            console.log('첫 번째 월 생성:', newMonth);
         } else {
             // 기존 월이 있으면 마지막 월의 다음 월 생성
             const last = months[months.length - 1];
             const match = last?.match(/(\d+)년 (\d+)월/);
 
             if (!match) {
-                console.error('월 추가 실패: 마지막 월 형식이 올바르지 않습니다:', last);
                 throw new Error('월 추가 실패: 마지막 월 형식이 올바르지 않습니다');
             }
 
@@ -50,12 +47,9 @@ export function useMonthManagement() {
             const nextMonth = Number(month) === 12 ? 1 : Number(month) + 1;
             const nextYear = Number(month) === 12 ? Number(year) + 1 : Number(year);
             newMonth = `${nextYear}년 ${nextMonth}월`;
-            console.log('다음 월 생성:', newMonth, 'from', last);
         }
 
         try {
-            console.log('월 추가 시작:', { newMonth, company, contact, regNo });
-
             pendingNewMonth.current = newMonth;
 
             await addMonthMutation.mutateAsync({
@@ -64,41 +58,29 @@ export function useMonthManagement() {
                 contact: contact || null,
                 regNo: regNo || null,
             });
-
-            console.log('월 추가 성공:', newMonth);
         } catch (err) {
             pendingNewMonth.current = null;
-            console.error('새로운 월 저장 실패:', err);
-            const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
-            console.error('에러 상세:', errorMessage);
             throw err; // 에러를 상위로 전달하여 UI에서 처리할 수 있도록
         }
     }, [months, addMonthMutation]);
 
     // 월 삭제
     const deleteMonth = useCallback(async (monthLabel: string) => {
-        try {
-            // 먼저 월 데이터를 조회하여 ID를 얻습니다
-            const monthData = await transportService.getTransportMonth(monthLabel);
+        // 먼저 월 데이터를 조회하여 ID를 얻습니다
+        const monthData = await transportService.getTransportMonth(monthLabel);
 
-            if (monthData) {
-                await deleteMonthMutation.mutateAsync(monthData.id);
+        if (monthData) {
+            await deleteMonthMutation.mutateAsync(monthData.id);
 
-                // 삭제된 월이 현재 선택된 월인 경우 다른 월을 선택
-                const deletedIndex = months.findIndex(m => m === monthLabel);
-                if (deletedIndex === selectedMonth) {
-                    const newSelectedMonth = Math.max(0, selectedMonth - 1);
-                    setSelectedMonth(newSelectedMonth);
-                }
-
-                // 체크된 월 목록에서도 제거
-                setCheckedMonths(prev => prev.filter(i => months[i] !== monthLabel));
-
-                console.log('월이 성공적으로 삭제되었습니다:', monthLabel);
+            // 삭제된 월이 현재 선택된 월인 경우 다른 월을 선택
+            const deletedIndex = months.findIndex(m => m === monthLabel);
+            if (deletedIndex === selectedMonth) {
+                const newSelectedMonth = Math.max(0, selectedMonth - 1);
+                setSelectedMonth(newSelectedMonth);
             }
-        } catch (err) {
-            console.error('월 삭제 실패:', err);
-            throw err;
+
+            // 체크된 월 목록에서도 제거
+            setCheckedMonths(prev => prev.filter(i => months[i] !== monthLabel));
         }
     }, [months, selectedMonth, deleteMonthMutation]);
 

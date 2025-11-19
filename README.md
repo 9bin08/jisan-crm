@@ -156,10 +156,12 @@ git push origin main
 #### 현재 프로젝트 환경 변수 값:
 
 **환경 변수 1:**
+
 - **Name**: `VITE_SUPABASE_URL`
 - **Value**: `https://zeqxavqgtunpcrgpebvh.supabase.co`
 
 **환경 변수 2:**
+
 - **Name**: `VITE_SUPABASE_ANON_KEY`
 - **Value**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcXhhdnFndHVucGNyZ3BlYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTI3MzgsImV4cCI6MjA3OTEyODczOH0.ccl8tQPw-p04suThOK4UnsH6CopdoP43-8xG9k6u-SQ`
 
@@ -170,6 +172,7 @@ git push origin main
 2. **프로젝트 선택** → **Settings** → **Environment Variables** 클릭
 
 3. **환경 변수 추가:**
+
    - **Key** 필드에 `VITE_SUPABASE_URL` 입력
    - **Value** 필드에 `https://zeqxavqgtunpcrgpebvh.supabase.co` 입력
    - **환경 선택:**
@@ -179,6 +182,7 @@ git push origin main
    - **Add** 버튼 클릭
 
 4. **두 번째 환경 변수 추가:**
+
    - **Key** 필드에 `VITE_SUPABASE_ANON_KEY` 입력
    - **Value** 필드에 `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcXhhdnFndHVucGNyZ3BlYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTI3MzgsImV4cCI6MjA3OTEyODczOH0.ccl8tQPw-p04suThOK4UnsH6CopdoP43-8xG9k6u-SQ` 입력
    - **환경 선택:**
@@ -188,6 +192,7 @@ git push origin main
    - **Add** 버튼 클릭
 
 5. **기존 환경 변수가 있는 경우:**
+
    - 기존 환경 변수를 삭제하고 새로 추가하거나
    - 기존 환경 변수를 클릭하여 값을 업데이트
 
