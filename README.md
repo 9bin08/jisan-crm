@@ -151,19 +151,31 @@ git push origin main
 
 ### 2. Vercel 환경 변수 설정
 
-**중요:** Vercel 대시보드에서 환경 변수를 설정해야 합니다.
+**중요:** Vercel 대시보드에서 환경 변수를 설정해야 합니다. 환경 변수가 없으면 Supabase 연결이 실패합니다.
+
+#### 현재 프로젝트 환경 변수 값:
 
 1. [Vercel 대시보드](https://vercel.com/dashboard)에 로그인
 2. 프로젝트 선택 → **Settings** → **Environment Variables**
 3. 다음 환경 변수를 추가:
+
+   **환경 변수 1:**
    - **Name**: `VITE_SUPABASE_URL`
-     - **Value**: Supabase 프로젝트 URL (예: `https://xxxxx.supabase.co`)
+   - **Value**: `https://zeqxavqgtunpcrgpebvh.supabase.co`
+   
+   **환경 변수 2:**
    - **Name**: `VITE_SUPABASE_ANON_KEY`
-     - **Value**: Supabase anon public key
-4. 각 환경에 적용:
-   - ✅ Production
-   - ✅ Preview
-   - ✅ Development
+   - **Value**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcXhhdnFndHVucGNyZ3BlYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTI3MzgsImV4cCI6MjA3OTEyODczOH0.ccl8tQPw-p04suThOK4UnsH6CopdoP43-8xG9k6u-SQ`
+
+4. **각 환경에 반드시 적용:**
+   - ✅ Production (프로덕션)
+   - ✅ Preview (프리뷰)
+   - ✅ Development (개발)
+
+5. **환경 변수 추가 후:**
+   - **Deployments** 탭으로 이동
+   - 최신 배포를 선택
+   - **Redeploy** 버튼 클릭 (환경 변수는 새 배포에만 적용됩니다)
 
 ### 3. 배포 확인
 
@@ -179,11 +191,23 @@ git push origin main
 2. **Deployments** 탭에서 최신 배포를 선택
 3. **Redeploy** 버튼 클릭
 
-**참고:**
+**⚠️ 중요 참고사항:**
 
-- 환경 변수는 배포 시점에 빌드에 포함됩니다
-- 환경 변수 변경 후에는 반드시 재배포가 필요합니다
+- 환경 변수는 **배포 시점에 빌드에 포함**됩니다
+- 환경 변수 변경 후에는 **반드시 재배포**가 필요합니다
+- 환경 변수가 없거나 잘못된 경우, 앱이 정상 작동하지 않습니다
 - 프로덕션 환경에서도 Supabase 연결 테스트가 콘솔에 표시됩니다
+- 브라우저 개발자 도구 콘솔에서 `✅ Supabase 연결 성공!` 메시지로 확인 가능
+
+### 5. 환경 변수 확인 방법
+
+배포 후 환경 변수가 제대로 설정되었는지 확인:
+
+1. 배포된 사이트 접속
+2. 브라우저 개발자 도구(F12) → Console 탭 열기
+3. 다음 메시지 확인:
+   - `✅ Supabase 연결 성공!` → 정상
+   - `❌ Supabase 연결 실패:` → 환경 변수 확인 필요
 
 ## 📋 데이터베이스 스키마
 
