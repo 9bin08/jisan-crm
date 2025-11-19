@@ -27,22 +27,37 @@ export function useMonthManagement() {
 
     // 새로운 월 추가
     const addMonth = useCallback(async (company: string, contact: string, regNo: string) => {
-        const last = months[months.length - 1];
-        const [year, month] = last?.match(/(\d+)년 (\d+)월/)?.slice(1, 3) || [];
-        if (!year || !month) {
-            console.error('월 추가 실패: 마지막 월을 찾을 수 없습니다');
-            throw new Error('월 추가 실패: 마지막 월을 찾을 수 없습니다');
+        let newMonth: string;
+        
+        // 월 목록이 비어있으면 현재 년월을 첫 번째 월로 생성
+        if (months.length === 0) {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1; // getMonth()는 0부터 시작
+            newMonth = `${currentYear}년 ${currentMonth}월`;
+            console.log('첫 번째 월 생성:', newMonth);
+        } else {
+            // 기존 월이 있으면 마지막 월의 다음 월 생성
+            const last = months[months.length - 1];
+            const match = last?.match(/(\d+)년 (\d+)월/);
+            
+            if (!match) {
+                console.error('월 추가 실패: 마지막 월 형식이 올바르지 않습니다:', last);
+                throw new Error('월 추가 실패: 마지막 월 형식이 올바르지 않습니다');
+            }
+            
+            const [, year, month] = match;
+            const nextMonth = Number(month) === 12 ? 1 : Number(month) + 1;
+            const nextYear = Number(month) === 12 ? Number(year) + 1 : Number(year);
+            newMonth = `${nextYear}년 ${nextMonth}월`;
+            console.log('다음 월 생성:', newMonth, 'from', last);
         }
-
-        const nextMonth = Number(month) === 12 ? 1 : Number(month) + 1;
-        const nextYear = Number(month) === 12 ? Number(year) + 1 : Number(year);
-        const newMonth = `${nextYear}년 ${nextMonth}월`;
 
         try {
             console.log('월 추가 시작:', { newMonth, company, contact, regNo });
-            
+
             pendingNewMonth.current = newMonth;
-            
+
             await addMonthMutation.mutateAsync({
                 monthLabel: newMonth,
                 company: company || null,
