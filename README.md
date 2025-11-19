@@ -151,31 +151,51 @@ git push origin main
 
 ### 2. Vercel 환경 변수 설정
 
-**중요:** Vercel 대시보드에서 환경 변수를 설정해야 합니다. 환경 변수가 없으면 Supabase 연결이 실패합니다.
+**⚠️ 중요:** Vercel 대시보드에서 환경 변수를 설정해야 합니다. 환경 변수가 없거나 잘못 설정되면 Supabase 연결이 실패합니다.
 
 #### 현재 프로젝트 환경 변수 값:
 
-1. [Vercel 대시보드](https://vercel.com/dashboard)에 로그인
-2. 프로젝트 선택 → **Settings** → **Environment Variables**
-3. 다음 환경 변수를 추가:
+**환경 변수 1:**
+- **Name**: `VITE_SUPABASE_URL`
+- **Value**: `https://zeqxavqgtunpcrgpebvh.supabase.co`
 
-   **환경 변수 1:**
-   - **Name**: `VITE_SUPABASE_URL`
-   - **Value**: `https://zeqxavqgtunpcrgpebvh.supabase.co`
-   
-   **환경 변수 2:**
-   - **Name**: `VITE_SUPABASE_ANON_KEY`
-   - **Value**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcXhhdnFndHVucGNyZ3BlYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTI3MzgsImV4cCI6MjA3OTEyODczOH0.ccl8tQPw-p04suThOK4UnsH6CopdoP43-8xG9k6u-SQ`
+**환경 변수 2:**
+- **Name**: `VITE_SUPABASE_ANON_KEY`
+- **Value**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcXhhdnFndHVucGNyZ3BlYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTI3MzgsImV4cCI6MjA3OTEyODczOH0.ccl8tQPw-p04suThOK4UnsH6CopdoP43-8xG9k6u-SQ`
 
-4. **각 환경에 반드시 적용:**
-   - ✅ Production (프로덕션)
-   - ✅ Preview (프리뷰)
-   - ✅ Development (개발)
+#### 단계별 설정 방법:
 
-5. **환경 변수 추가 후:**
+1. **[Vercel 대시보드](https://vercel.com/dashboard)에 로그인**
+
+2. **프로젝트 선택** → **Settings** → **Environment Variables** 클릭
+
+3. **환경 변수 추가:**
+   - **Key** 필드에 `VITE_SUPABASE_URL` 입력
+   - **Value** 필드에 `https://zeqxavqgtunpcrgpebvh.supabase.co` 입력
+   - **환경 선택:**
+     - ✅ Production
+     - ✅ Preview
+     - ✅ Development
+   - **Add** 버튼 클릭
+
+4. **두 번째 환경 변수 추가:**
+   - **Key** 필드에 `VITE_SUPABASE_ANON_KEY` 입력
+   - **Value** 필드에 `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InplcXhhdnFndHVucGNyZ3BlYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1NTI3MzgsImV4cCI6MjA3OTEyODczOH0.ccl8tQPw-p04suThOK4UnsH6CopdoP43-8xG9k6u-SQ` 입력
+   - **환경 선택:**
+     - ✅ Production
+     - ✅ Preview
+     - ✅ Development
+   - **Add** 버튼 클릭
+
+5. **기존 환경 변수가 있는 경우:**
+   - 기존 환경 변수를 삭제하고 새로 추가하거나
+   - 기존 환경 변수를 클릭하여 값을 업데이트
+
+6. **환경 변수 추가/수정 후 필수 작업:**
    - **Deployments** 탭으로 이동
    - 최신 배포를 선택
-   - **Redeploy** 버튼 클릭 (환경 변수는 새 배포에만 적용됩니다)
+   - **⋮** (점 3개) 메뉴 클릭 → **Redeploy** 선택
+   - ⚠️ **중요:** 환경 변수는 새 배포에만 적용됩니다. 재배포하지 않으면 변경사항이 반영되지 않습니다!
 
 ### 3. 배포 확인
 

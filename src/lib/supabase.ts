@@ -6,15 +6,25 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // 환경 변수 검증 강화
 if (!supabaseUrl) {
-    const error = 'Missing VITE_SUPABASE_URL environment variable. Please check your .env.local file.';
+    const error = 'Missing VITE_SUPABASE_URL environment variable. Please check your .env.local file or Vercel environment variables.';
     console.error('❌ Supabase Configuration Error:', error);
+    console.error('🔧 배포 환경인 경우: Vercel 대시보드 → Settings → Environment Variables에서 설정하세요.');
     throw new Error(error);
 }
 
 if (!supabaseAnonKey) {
-    const error = 'Missing VITE_SUPABASE_ANON_KEY environment variable. Please check your .env.local file.';
+    const error = 'Missing VITE_SUPABASE_ANON_KEY environment variable. Please check your .env.local file or Vercel environment variables.';
     console.error('❌ Supabase Configuration Error:', error);
+    console.error('🔧 배포 환경인 경우: Vercel 대시보드 → Settings → Environment Variables에서 설정하세요.');
     throw new Error(error);
+}
+
+// 잘못된 URL 감지 (이전 프로젝트 URL)
+if (supabaseUrl.includes('rfcmscelfggyvroitclo')) {
+    console.error('❌ 잘못된 Supabase URL이 감지되었습니다!');
+    console.error('📍 현재 URL:', supabaseUrl);
+    console.error('✅ 올바른 URL:', 'https://zeqxavqgtunpcrgpebvh.supabase.co');
+    console.error('🔧 해결 방법: Vercel 대시보드에서 환경 변수를 업데이트하고 재배포하세요.');
 }
 
 // URL 형식 검증
