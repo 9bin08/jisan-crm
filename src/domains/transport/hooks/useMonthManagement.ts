@@ -28,7 +28,7 @@ export function useMonthManagement() {
     // 새로운 월 추가
     const addMonth = useCallback(async (company: string, contact: string, regNo: string) => {
         let newMonth: string;
-        
+
         // 월 목록이 비어있으면 현재 년월을 첫 번째 월로 생성
         if (months.length === 0) {
             const now = new Date();
@@ -40,12 +40,12 @@ export function useMonthManagement() {
             // 기존 월이 있으면 마지막 월의 다음 월 생성
             const last = months[months.length - 1];
             const match = last?.match(/(\d+)년 (\d+)월/);
-            
+
             if (!match) {
                 console.error('월 추가 실패: 마지막 월 형식이 올바르지 않습니다:', last);
                 throw new Error('월 추가 실패: 마지막 월 형식이 올바르지 않습니다');
             }
-            
+
             const [, year, month] = match;
             const nextMonth = Number(month) === 12 ? 1 : Number(month) + 1;
             const nextYear = Number(month) === 12 ? Number(year) + 1 : Number(year);

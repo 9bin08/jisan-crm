@@ -1,10 +1,10 @@
 -- 운반 월별 데이터 테이블
 CREATE TABLE transport_months (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    month_label TEXT NOT NULL UNIQUE,
-    company TEXT NOT NULL,
-    contact TEXT NOT NULL,
-    reg_no TEXT NOT NULL,
+    month_label TEXT UNIQUE,
+    company TEXT,
+    contact TEXT,
+    reg_no TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -12,19 +12,19 @@ CREATE TABLE transport_months (
 -- 운반 행 데이터 테이블
 CREATE TABLE transport_rows (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    month_id UUID NOT NULL REFERENCES transport_months(id) ON DELETE CASCADE,
-    date TEXT NOT NULL,
-    car_number TEXT NOT NULL,
-    company TEXT NOT NULL,
-    destination TEXT NOT NULL,
-    item TEXT NOT NULL,
-    weight TEXT NOT NULL,
-    count TEXT NOT NULL,
-    unit_price TEXT NOT NULL,
-    supply_price TEXT NOT NULL,
-    tax TEXT NOT NULL,
-    total_price TEXT NOT NULL,
-    row_order INTEGER NOT NULL,
+    month_id UUID REFERENCES transport_months(id) ON DELETE CASCADE,
+    date TEXT,
+    car_number TEXT,
+    company TEXT,
+    destination TEXT,
+    item TEXT,
+    weight TEXT,
+    count TEXT,
+    unit_price TEXT,
+    supply_price TEXT,
+    tax TEXT,
+    total_price TEXT,
+    row_order INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
