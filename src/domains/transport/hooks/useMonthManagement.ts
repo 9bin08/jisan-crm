@@ -1,27 +1,48 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useMonthList, useAddMonth, useDeleteMonth } from './queries/useMonthQueries';
 import { transportService } from '../services/transportService';
 
 export function useMonthManagement() {
     const [selectedMonth, setSelectedMonth] = useState(0);
     const [checkedMonths, setCheckedMonths] = useState<number[]>([]);
+    const pendingNewMonth = useRef<string | null>(null);
 
     // TanStack Query hooks
     const { data: months = [], isLoading, error } = useMonthList();
     const addMonthMutation = useAddMonth();
     const deleteMonthMutation = useDeleteMonth();
 
+    // 새로 추가된 월을 자동으로 선택
+    useEffect(() => {
+        if (pendingNewMonth.current && months.length > 0) {
+            const newMonthIndex = months.findIndex(m => m === pendingNewMonth.current);
+            if (newMonthIndex !== -1) {
+                setSelectedMonth(newMonthIndex);
+                setCheckedMonths(months.map((_, i) => i));
+                console.log('새로운 월이 자동으로 선택되었습니다:', pendingNewMonth.current);
+                pendingNewMonth.current = null;
+            }
+        }
+    }, [months]);
+
     // 새로운 월 추가
     const addMonth = useCallback(async (company: string, contact: string, regNo: string) => {
         const last = months[months.length - 1];
-        const [year, month] = last.match(/(\d+)년 (\d+)월/)?.slice(1, 3) || [];
-        if (!year || !month) return;
+        const [year, month] = last?.match(/(\d+)년 (\d+)월/)?.slice(1, 3) || [];
+        if (!year || !month) {
+            console.error('월 추가 실패: 마지막 월을 찾을 수 없습니다');
+            throw new Error('월 추가 실패: 마지막 월을 찾을 수 없습니다');
+        }
 
         const nextMonth = Number(month) === 12 ? 1 : Number(month) + 1;
         const nextYear = Number(month) === 12 ? Number(year) + 1 : Number(year);
         const newMonth = `${nextYear}년 ${nextMonth}월`;
 
         try {
+            console.log('월 추가 시작:', { newMonth, company, contact, regNo });
+            
+            pendingNewMonth.current = newMonth;
+            
             await addMonthMutation.mutateAsync({
                 monthLabel: newMonth,
                 company: company || null,
@@ -29,20 +50,13 @@ export function useMonthManagement() {
                 regNo: regNo || null,
             });
 
-            // 새로 추가된 월을 선택
-            const newMonthIndex = months.findIndex(m => m === newMonth);
-            if (newMonthIndex !== -1) {
-                setSelectedMonth(newMonthIndex);
-                setCheckedMonths(months.map((_, i) => i));
-            }
-
-            console.log('새로운 월이 서버에 저장되었습니다:', newMonth);
+            console.log('월 추가 성공:', newMonth);
         } catch (err) {
+            pendingNewMonth.current = null;
             console.error('새로운 월 저장 실패:', err);
-            // 실패 시 로컬에만 추가 (fallback)
-            const updatedMonths = [...months, newMonth];
-            setSelectedMonth(updatedMonths.length - 1);
-            setCheckedMonths(updatedMonths.map((_, i) => i));
+            const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+            console.error('에러 상세:', errorMessage);
+            throw err; // 에러를 상위로 전달하여 UI에서 처리할 수 있도록
         }
     }, [months, addMonthMutation]);
 
@@ -90,7 +104,7 @@ export function useMonthManagement() {
         } else {
             setCheckedMonths(months.map((_, i) => i));
         }
-    }, [checkedMonths.length, months.length]);
+    }, [checkedMonths.length, months]);
 
     return {
         months,

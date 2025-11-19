@@ -169,7 +169,14 @@ function TransportPage() {
     };
 
     const handleAddMonth = async () => {
-        await addMonth(company, contact, regNo);
+        try {
+            await addMonth(company, contact, regNo);
+            showSuccess('새로운 월이 추가되었습니다.');
+        } catch (err) {
+            const errorMessage = handleError(err, '월 추가');
+            showError(errorMessage.message);
+            console.error('월 추가 실패:', err);
+        }
     };
 
     const handleDeleteMonth = async (monthLabel: string) => {

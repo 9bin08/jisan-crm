@@ -142,12 +142,15 @@ http://localhost:8080
 ## 🚀 Vercel 배포 가이드
 
 ### 1. GitHub에 푸시
+
 변경사항을 GitHub에 푸시하면 Vercel이 자동으로 배포를 시작합니다:
+
 ```bash
 git push origin main
 ```
 
 ### 2. Vercel 환경 변수 설정
+
 **중요:** Vercel 대시보드에서 환경 변수를 설정해야 합니다.
 
 1. [Vercel 대시보드](https://vercel.com/dashboard)에 로그인
@@ -163,17 +166,21 @@ git push origin main
    - ✅ Development
 
 ### 3. 배포 확인
+
 - Vercel 대시보드의 **Deployments** 탭에서 배포 상태 확인
 - 배포 완료 후 제공되는 URL로 접속
 - 브라우저 개발자 도구 콘솔에서 `✅ Supabase 연결 성공!` 메시지 확인
 
 ### 4. 환경 변수 변경 후 재배포
+
 환경 변수를 변경한 경우:
+
 1. Vercel 대시보드에서 환경 변수 업데이트
 2. **Deployments** 탭에서 최신 배포를 선택
 3. **Redeploy** 버튼 클릭
 
 **참고:**
+
 - 환경 변수는 배포 시점에 빌드에 포함됩니다
 - 환경 변수 변경 후에는 반드시 재배포가 필요합니다
 - 프로덕션 환경에서도 Supabase 연결 테스트가 콘솔에 표시됩니다

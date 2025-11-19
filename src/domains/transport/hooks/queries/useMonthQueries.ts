@@ -31,9 +31,10 @@ export function useAddMonth() {
         }) => {
             return await transportService.saveTransportMonth(monthLabel, company, contact, regNo);
         },
-        onSuccess: () => {
-            // 월 목록 캐시 무효화
-            queryClient.invalidateQueries({ queryKey: monthKeys.lists() });
+        onSuccess: async () => {
+            // 월 목록 캐시 무효화 및 강제 새로고침
+            await queryClient.invalidateQueries({ queryKey: monthKeys.lists() });
+            await queryClient.refetchQueries({ queryKey: monthKeys.lists() });
             logger.info('새로운 월이 추가되었습니다.');
         },
         onError: (error) => {

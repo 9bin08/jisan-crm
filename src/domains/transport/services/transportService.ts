@@ -34,17 +34,18 @@ interface RowData {
 }
 
 // 유틸리티 함수들
-const createError = (message: string, originalError?: any): Error => {
+const createError = (message: string, originalError?: unknown): Error => {
     const error = new Error(message);
     if (originalError) {
-        logger.errorWithError(message, originalError);
+        logger.errorWithError(originalError, message);
     }
     return error;
 };
 
-const handleSupabaseError = (error: any, context: string): never => {
-    const errorMessage = `${context}: ${error.message}`;
-    logger.errorWithError(errorMessage, error);
+const handleSupabaseError = (error: unknown, context: string): never => {
+    const errorObj = error as { message?: string; code?: string; details?: string };
+    const errorMessage = `${context}: ${errorObj.message || '알 수 없는 오류'}`;
+    logger.errorWithError(error, context);
     throw createError(errorMessage, error);
 };
 
@@ -73,26 +74,42 @@ export async function saveTransportMonth(
     regNo: string | null
 ): Promise<MonthData> {
     try {
+        console.log('월별 데이터 저장 시작:', { monthLabel, company, contact, regNo });
         logger.info('월별 데이터 저장 시작', JSON.stringify({ monthLabel, company, contact, regNo }));
+
+        const insertData = {
+            month_label: monthLabel || SERVICE.DEFAULTS.NULL_VALUE,
+            company: company || SERVICE.DEFAULTS.NULL_VALUE,
+            contact: contact || SERVICE.DEFAULTS.NULL_VALUE,
+            reg_no: regNo || SERVICE.DEFAULTS.NULL_VALUE,
+        };
+
+        console.log('삽입할 데이터:', insertData);
 
         const { data, error } = await supabase
             .from(SERVICE.TABLES.TRANSPORT_MONTHS)
-            .insert({
-                month_label: monthLabel || SERVICE.DEFAULTS.NULL_VALUE,
-                company: company || SERVICE.DEFAULTS.NULL_VALUE,
-                contact: contact || SERVICE.DEFAULTS.NULL_VALUE,
-                reg_no: regNo || SERVICE.DEFAULTS.NULL_VALUE,
-            })
+            .insert(insertData)
             .select()
             .single();
 
         if (error) {
+            console.error('월별 데이터 저장 에러:', error);
+            console.error('에러 코드:', error.code);
+            console.error('에러 메시지:', error.message);
+            console.error('에러 상세:', error.details);
             handleSupabaseError(error, ERROR_MESSAGES.MONTH_SAVE_FAILED);
         }
 
+        if (!data) {
+            console.error('월별 데이터 저장 실패: 데이터가 반환되지 않았습니다');
+            throw new Error('월별 데이터 저장 실패: 데이터가 반환되지 않았습니다');
+        }
+
+        console.log('월별 데이터 저장 완료:', data);
         logger.info('월별 데이터 저장 완료', JSON.stringify({ monthId: data.id }));
         return data;
     } catch (error) {
+        console.error('월별 데이터 저장 예외:', error);
         return handleSupabaseError(error, ERROR_MESSAGES.MONTH_SAVE_FAILED);
     }
 }
@@ -178,6 +195,7 @@ export async function deleteTransportMonth(monthId: string): Promise<void> {
 // 운반 행 데이터 관련 함수들
 export async function saveTransportRows(monthId: string, rows: TransportRow[]): Promise<RowData[]> {
     try {
+        console.log('운반 행 데이터 저장 시작:', { monthId, rowCount: rows.length });
         logger.info('운반 행 데이터 저장 시작', JSON.stringify({ monthId, rowCount: rows.length }));
 
         // 기존 데이터 삭제
@@ -187,7 +205,14 @@ export async function saveTransportRows(monthId: string, rows: TransportRow[]): 
             .eq('month_id', monthId);
 
         if (deleteError) {
+            console.error('기존 데이터 삭제 에러:', deleteError);
             handleSupabaseError(deleteError, ERROR_MESSAGES.ROWS_DELETE_FAILED);
+        }
+
+        // 빈 배열인 경우 삭제만 하고 종료
+        if (rows.length === 0) {
+            console.log('저장할 행 데이터가 없습니다.');
+            return [];
         }
 
         // 새 데이터 삽입 (null 값 안전 처리)
@@ -207,24 +232,33 @@ export async function saveTransportRows(monthId: string, rows: TransportRow[]): 
             row_order: index,
         }));
 
+        console.log('삽입할 행 데이터 개수:', rowsToInsert.length);
+
         const { data, error } = await supabase
             .from(SERVICE.TABLES.TRANSPORT_ROWS)
             .insert(rowsToInsert)
             .select();
 
         if (error) {
+            console.error('운반 행 데이터 저장 에러:', error);
+            console.error('에러 코드:', error.code);
+            console.error('에러 메시지:', error.message);
+            console.error('에러 상세:', error.details);
             handleSupabaseError(error, ERROR_MESSAGES.ROWS_SAVE_FAILED);
         }
 
+        console.log('운반 행 데이터 저장 완료:', { monthId, savedCount: data?.length });
         logger.info('운반 행 데이터 저장 완료', JSON.stringify({ monthId, savedCount: data?.length }));
         return data || [];
     } catch (error) {
+        console.error('운반 행 데이터 저장 예외:', error);
         return handleSupabaseError(error, ERROR_MESSAGES.ROWS_SAVE_FAILED);
     }
 }
 
 export async function getTransportRows(monthId: string): Promise<TransportRow[]> {
     try {
+        console.log('운반 행 데이터 조회 시작:', { monthId });
         logger.info('운반 행 데이터 조회 시작', JSON.stringify({ monthId }));
 
         const { data, error } = await supabase
@@ -236,6 +270,9 @@ export async function getTransportRows(monthId: string): Promise<TransportRow[]>
             });
 
         if (error) {
+            console.error('운반 행 데이터 조회 에러:', error);
+            console.error('에러 코드:', error.code);
+            console.error('에러 메시지:', error.message);
             handleSupabaseError(error, ERROR_MESSAGES.ROWS_LOAD_FAILED);
         }
 
@@ -253,9 +290,11 @@ export async function getTransportRows(monthId: string): Promise<TransportRow[]>
             totalPrice: row.total_price || SERVICE.DEFAULTS.EMPTY_STRING,
         }));
 
+        console.log('운반 행 데이터 조회 완료:', { monthId, rowCount: transportRows.length });
         logger.info('운반 행 데이터 조회 완료', JSON.stringify({ monthId, rowCount: transportRows.length }));
         return transportRows;
     } catch (error) {
+        console.error('운반 행 데이터 조회 예외:', error);
         return handleSupabaseError(error, ERROR_MESSAGES.ROWS_LOAD_FAILED);
     }
 }
