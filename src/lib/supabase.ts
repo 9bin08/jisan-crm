@@ -63,17 +63,17 @@ export async function testSupabaseConnection(): Promise<boolean> {
     }
 }
 
-// 개발 환경에서 자동 연결 테스트
-if (import.meta.env.DEV) {
-    console.log('🔧 개발 모드: Supabase 설정 확인');
-    console.log('📍 URL:', supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : '❌ 없음');
-    console.log('🔑 Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : '❌ 없음');
+// 개발 및 프로덕션 환경에서 Supabase 설정 확인
+console.log('🔧 Supabase 설정 확인');
+console.log('📍 URL:', supabaseUrl ? supabaseUrl : '❌ 없음');
+console.log('🔑 Key:', supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : '❌ 없음');
+console.log('🌍 환경:', import.meta.env.MODE);
+console.log('📦 빌드 모드:', import.meta.env.PROD ? 'Production' : 'Development');
 
-    // 앱 시작 시 연결 테스트 (비동기로 실행하여 앱 시작을 막지 않음)
-    testSupabaseConnection().catch(err => {
-        console.error('Supabase 연결 테스트 실패:', err);
-    });
-}
+// 앱 시작 시 연결 테스트 (비동기로 실행하여 앱 시작을 막지 않음)
+testSupabaseConnection().catch(err => {
+    console.error('Supabase 연결 테스트 실패:', err);
+});
 
 // 데이터베이스 타입 정의
 export interface Database {
